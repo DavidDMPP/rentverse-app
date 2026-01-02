@@ -1,8 +1,9 @@
 {
   "expo": {
-    "name": "rentverse-app",
+    "name": "Rentverse",
     "slug": "rentverse-app",
     "version": "1.0.0",
+    "description": "Property rental platform connecting tenants with property providers",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -21,10 +22,16 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.daviddmpp.rentverseapp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "40a1948b-358d-4c80-80a8-879dc6323eef"
+      }
     }
   }
 }
