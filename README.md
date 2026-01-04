@@ -55,24 +55,36 @@
 | 🔍 **Property Search** | Search properties by location, price, bedrooms, and more |
 | 🏠 **Property Details** | View comprehensive property information with images |
 | 📅 **Booking System** | Book properties with date selection and instant confirmation |
+| 📋 **Booking Details** | View detailed booking information with tenant/landlord contact |
+| 📊 **Booking Status** | Real-time status tracking (Pending → Active → Completed) |
 | ❤️ **Favorites** | Save properties to favorites for quick access |
-| 📋 **Booking History** | Track all past and current bookings |
+| 📋 **Booking History** | Track all past and current bookings with filtering |
 | 👤 **Profile Management** | Update personal information and preferences |
 
 ### For Property Providers
 | Feature | Description |
 |---------|-------------|
-| 📊 **Dashboard** | Overview of properties, bookings, and statistics |
-| ➕ **Add Listings** | Create new property listings with images |
-| ✏️ **Edit Listings** | Update property details and availability |
-| 📋 **Booking Management** | Approve, reject, or manage booking requests |
-| 🤖 **AI Price Estimator** | Get AI-powered rental price recommendations |
-| 📈 **Analytics** | View property performance metrics |
+| 📊 **Dashboard** | Real-time overview with 7-day booking activity charts |
+| 💰 **Daily Income** | Live income tracking from active bookings |
+| ➕ **Add Listings** | Create new property listings with dark theme UI |
+| ✏️ **Edit Listings** | Update property details with success notifications |
+| 📋 **Booking Management** | Approve, reject, or manage booking requests with filters |
+| 🤖 **AI Price Estimator** | Enhanced 2x2 grid layout with colored property type icons |
+| 📈 **Analytics** | View property performance metrics and booking trends |
 
 ### AI Features
 - **Smart Price Prediction**: ML-based rental price estimation
+- **Enhanced UI**: 2x2 grid layout with colored property type icons
 - **Confidence Scoring**: Dynamic confidence levels (75%-92%)
 - **Market Analysis**: Location-based price recommendations
+
+### Recent Updates (Latest Version)
+- ✨ **New BookingDetailScreen**: Comprehensive booking information with contact details
+- 🎨 **Enhanced UI/UX**: Dark theme consistency across all provider screens
+- 🐛 **Bug Fixes**: Fixed daily income calculation and booking status logic
+- 📊 **Real Data Charts**: Provider dashboard now shows actual 7-day booking activity
+- 🔧 **Improved Validation**: Better form validation and error handling
+- 📱 **Better Navigation**: Smooth transitions between screens with proper status updates
 
 ---
 
@@ -158,7 +170,8 @@ App
 │   ├── Home Tab
 │   │   ├── TenantHomeScreen
 │   │   ├── PropertyDetailScreen
-│   │   └── BookingScreen
+│   │   ├── BookingScreen
+│   │   └── BookingDetailScreen        # 🆕 New detailed view
 │   ├── Search Tab
 │   │   └── SearchScreen
 │   ├── Saved Tab
@@ -203,7 +216,7 @@ rentverse-app/
 │
 ├── 📁 src/
 │   ├── 📁 components/            # Reusable components
-│   │   ├── BookingCard.tsx       # Booking display card
+│   │   ├── BookingCard.tsx       # 🔄 Enhanced status display
 │   │   ├── PropertyCard.tsx      # Property listing card
 │   │   ├── SearchBar.tsx         # Search input component
 │   │   ├── CategoryFilter.tsx    # Filter chips
@@ -228,17 +241,18 @@ rentverse-app/
 │   │   │   ├── TenantHomeScreen.tsx
 │   │   │   ├── PropertyDetailScreen.tsx
 │   │   │   ├── BookingScreen.tsx
+│   │   │   ├── BookingDetailScreen.tsx    # 🆕 Detailed booking view
 │   │   │   ├── SearchScreen.tsx
 │   │   │   ├── SavedScreen.tsx
 │   │   │   └── TenantBookingsScreen.tsx
 │   │   │
 │   │   ├── 📁 provider/
-│   │   │   ├── ProviderDashboardScreen.tsx
+│   │   │   ├── ProviderDashboardScreen.tsx  # 🔄 Enhanced with real data
 │   │   │   ├── ListingsScreen.tsx
 │   │   │   ├── AddListingScreen.tsx
-│   │   │   ├── EditListingScreen.tsx
-│   │   │   ├── BookingManagementScreen.tsx
-│   │   │   └── AIPriceEstimatorScreen.tsx
+│   │   │   ├── EditListingScreen.tsx        # 🔄 Dark theme + modals
+│   │   │   ├── BookingManagementScreen.tsx  # 🔄 Fixed active filter
+│   │   │   └── AIPriceEstimatorScreen.tsx   # 🔄 2x2 grid layout
 │   │   │
 │   │   └── 📁 common/
 │   │       └── ProfileScreen.tsx
@@ -263,6 +277,50 @@ rentverse-app/
     └── services/
         └── *.test.ts
 ```
+
+---
+
+## 📝 Changelog
+
+### Version 2.0.0 (Latest) - Major UI/UX Improvements
+**Release Date**: January 2026
+
+#### ✨ New Features
+- **BookingDetailScreen**: Comprehensive booking information with tenant/landlord contact details
+- **Enhanced Provider Dashboard**: Real-time 7-day booking activity charts with actual data
+- **Dark Theme Consistency**: All provider screens now use consistent dark theme
+- **Custom Modals**: Success/error modals for better user feedback
+
+#### 🐛 Bug Fixes
+- Fixed daily income calculation showing correct amounts (RM 30K instead of RM 100B+)
+- Fixed booking status display logic (APPROVED → ACTIVE → COMPLETED based on dates)
+- Fixed active booking filter in booking management
+- Fixed validation errors in EditListingScreen (missing zipCode field)
+- Fixed booking price display consistency (per day vs total amount)
+
+#### 🎨 UI/UX Improvements
+- **AIPriceEstimator**: Updated to 2x2 grid layout with colored property type icons
+- **EditListingScreen**: Complete dark theme makeover with success notifications
+- **BookingCard**: Enhanced status indicators and navigation
+- **Provider Dashboard**: Real booking data instead of mock monthly data
+- **Form Validation**: Better error handling and user feedback
+
+#### 🔧 Technical Improvements
+- Enhanced booking status logic with date-based calculations
+- Improved data validation and error handling
+- Added comprehensive debugging for dashboard calculations
+- Fixed navigation flow between screens
+- Optimized booking data fetching and filtering
+
+### Version 1.0.0 - Initial Release
+**Release Date**: December 2025
+
+#### 🚀 Core Features
+- Complete tenant and provider interfaces
+- Property search and booking system
+- AI-powered price estimation
+- JWT authentication
+- Cloud deployment with Cloudflare Tunnel
 
 ---
 
