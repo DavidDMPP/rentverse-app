@@ -45,12 +45,41 @@ export function BookingCard({
   onReject,
 }: BookingCardProps): React.JSX.Element {
   const property = booking.property;
-  const statusColor = STATUS_COLORS[booking.status] || STATUS_COLORS.PENDING;
+  
+  // Calculate effective status based on dates
+  const getEffectiveStatus = (): BookingStatus => {
+    if (booking.status === 'APPROVED') {
+      const now = new Date();
+      const startDate = new Date(booking.startDate);
+      const endDate = new Date(booking.endDate);
+      
+      if (now >= startDate && now <= endDate) {
+        return 'ACTIVE';
+      }
+      if (now > endDate) {
+        return 'COMPLETED';
+      }
+    }
+    return booking.status;
+  };
+  
+  const effectiveStatus = getEffectiveStatus();
+  
+  // Display label (show CANCELLED for tenant-cancelled bookings)
+  const getDisplayStatus = (): string => {
+    if (effectiveStatus === 'REJECTED' && role === 'tenant') {
+      // If it's rejected and we're viewing as tenant, it might be cancelled by tenant
+      return 'CANCELLED';
+    }
+    return effectiveStatus;
+  };
+  
+  const displayStatus = getDisplayStatus();
+  const statusColor = STATUS_COLORS[displayStatus] || STATUS_COLORS[effectiveStatus] || STATUS_COLORS.PENDING;
   
   const imageUri = property?.images?.[0] || 'https://picsum.photos/seed/prop/400/300';
 
-  const canCancel = role === 'tenant' && 
-    (booking.status === 'PENDING' || booking.status === 'APPROVED' || booking.status === 'ACTIVE');
+  const canCancel = role === 'tenant' && booking.status === 'PENDING';
   
   const canApproveReject = role === 'owner' && booking.status === 'PENDING';
 
@@ -67,7 +96,7 @@ export function BookingCard({
             {property?.title || 'Property'}
           </Text>
           <Text style={styles.price}>
-            {formatCurrency(booking.rentAmount || property?.price || 0)}/day
+            {formatCurrency(property?.price || 0)}/day
           </Text>
           <View style={styles.locationRow}>
             <Ionicons name="location" size={12} color={Colors.dark.textTertiary} />
@@ -90,7 +119,7 @@ export function BookingCard({
 
         <View style={[styles.statusBadge, { backgroundColor: statusColor.bg }]}>
           <Text style={[styles.statusText, { color: statusColor.text }]}>
-            {booking.status}
+            {displayStatus}
           </Text>
         </View>
       </View>

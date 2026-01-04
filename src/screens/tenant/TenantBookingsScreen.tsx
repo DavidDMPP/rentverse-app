@@ -20,10 +20,15 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Booking, BookingStatus } from '../../types';
 import { getTenantBookings, cancelBooking } from '../../services/bookingService';
 import { BookingCard } from '../../components/BookingCard';
 import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../theme';
+import { RootStackParamList } from '../../navigation/AppNavigator';
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const STATUS_TABS: Array<{ key: BookingStatus | 'ALL'; label: string; icon: string }> = [
   { key: 'ALL', label: 'All', icon: 'grid-outline' },
@@ -192,6 +197,7 @@ const EmptyState: React.FC<{ status: BookingStatus | 'ALL' }> = ({ status }) => 
 };
 
 export function TenantBookingsScreen(): React.JSX.Element {
+  const navigation = useNavigation<NavigationProp>();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [filteredBookings, setFilteredBookings] = useState<Booking[]>([]);
   const [selectedStatus, setSelectedStatus] = useState<BookingStatus | 'ALL'>('ALL');
@@ -272,9 +278,14 @@ export function TenantBookingsScreen(): React.JSX.Element {
       
       setBookings((prev) =>
         prev.map((b) =>
-          b.id === bookingToCancel.id ? { ...b, status: 'CANCELLED' as BookingStatus } : b
+          b.id === bookingToCancel.id ? { ...b, status: 'REJECTED' as BookingStatus } : b
         )
       );
+
+      // Refresh data to get updated info
+      setTimeout(() => {
+        fetchBookings();
+      }, 1000);
 
       setShowSuccessModal(true);
     } catch (err: any) {
@@ -289,7 +300,7 @@ export function TenantBookingsScreen(): React.JSX.Element {
   };
 
   const handleBookingPress = (booking: Booking) => {
-    console.log('Booking pressed:', booking.id);
+    navigation.navigate('BookingDetail', { bookingId: booking.id });
   };
 
   const renderBookingItem = ({ item }: { item: Booking }) => (

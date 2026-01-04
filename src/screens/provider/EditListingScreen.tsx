@@ -41,6 +41,8 @@ import {
   FURNISHED_TYPES,
   FurnishedType,
 } from '../../types';
+import { useTheme } from '../../context/ThemeContext';
+import { Colors } from '../../theme';
 
 // Route params type
 type EditListingRouteParams = {
@@ -58,6 +60,7 @@ interface FormState {
   address: string;
   city: string;
   state: string;
+  zipCode: string;
   price: string;
   bedrooms: string;
   bathrooms: string;
@@ -77,16 +80,19 @@ interface FormFieldProps {
   children: React.ReactNode;
 }
 
-const FormField: React.FC<FormFieldProps> = ({ label, required, error, children }) => (
-  <View style={styles.fieldContainer}>
-    <Text style={styles.fieldLabel}>
-      {label}
-      {required && <Text style={styles.required}> *</Text>}
-    </Text>
-    {children}
-    {error && <Text style={styles.errorText}>{error}</Text>}
-  </View>
-);
+const FormField: React.FC<FormFieldProps> = ({ label, required, error, children }) => {
+  const { theme } = useTheme();
+  return (
+    <View style={styles.fieldContainer}>
+      <Text style={[styles.fieldLabel, { color: theme.colors.textSecondary }]}>
+        {label}
+        {required && <Text style={styles.required}> *</Text>}
+      </Text>
+      {children}
+      {error && <Text style={styles.errorText}>{error}</Text>}
+    </View>
+  );
+};
 
 /**
  * SelectField Component - Custom dropdown selector
@@ -111,17 +117,22 @@ const SelectField: React.FC<SelectFieldProps> = ({
   onSelect,
 }) => {
   const [modalVisible, setModalVisible] = useState(false);
+  const { theme, isDark } = useTheme();
 
   return (
     <FormField label={label} required={required} error={error}>
       <TouchableOpacity
-        style={[styles.selectButton, error && styles.inputError]}
+        style={[
+          styles.selectButton,
+          error && styles.inputError,
+          { backgroundColor: isDark ? theme.colors.surfaceLight : theme.colors.surfaceLight, borderColor: theme.colors.border },
+        ]}
         onPress={() => setModalVisible(true)}
       >
-        <Text style={[styles.selectButtonText, !value && styles.placeholderText]}>
+        <Text style={[styles.selectButtonText, { color: theme.colors.text }, !value && { color: theme.colors.placeholder }] }>
           {value || placeholder}
         </Text>
-        <Ionicons name="chevron-down" size={20} color="#6B7280" />
+        <Ionicons name="chevron-down" size={20} color={theme.colors.textSecondary} />
       </TouchableOpacity>
 
       <Modal
@@ -130,12 +141,12 @@ const SelectField: React.FC<SelectFieldProps> = ({
         animationType="slide"
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{label}</Text>
+        <View style={[styles.modalOverlay, { backgroundColor: theme.colors.overlay }]}>
+          <View style={[styles.modalContent, { backgroundColor: theme.colors.surface }]}>
+            <View style={[styles.modalHeader, { borderBottomColor: theme.colors.border }]}>
+              <Text style={[styles.modalTitle, { color: theme.colors.text }]}>{label}</Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#1F2937" />
+                <Ionicons name="close" size={24} color={theme.colors.text} />
               </TouchableOpacity>
             </View>
             <FlatList
@@ -143,15 +154,15 @@ const SelectField: React.FC<SelectFieldProps> = ({
               keyExtractor={item => item.id}
               renderItem={({ item }) => (
                 <TouchableOpacity
-                  style={styles.modalOption}
+                  style={[styles.modalOption, { borderBottomColor: theme.colors.borderLight }]}
                   onPress={() => {
                     onSelect(item.id, item.name);
                     setModalVisible(false);
                   }}
                 >
-                  <Text style={styles.modalOptionText}>{item.name}</Text>
+                  <Text style={[styles.modalOptionText, { color: theme.colors.text }]}>{item.name}</Text>
                   {value === item.name && (
-                    <Ionicons name="checkmark" size={20} color="#6200ee" />
+                    <Ionicons name="checkmark" size={20} color={Colors.primary} />
                   )}
                 </TouchableOpacity>
               )}
@@ -172,19 +183,26 @@ interface AmenityChipProps {
   onToggle: () => void;
 }
 
-const AmenityChip: React.FC<AmenityChipProps> = ({ amenity, selected, onToggle }) => (
-  <TouchableOpacity
-    style={[styles.amenityChip, selected && styles.amenityChipSelected]}
-    onPress={onToggle}
-  >
-    <Text style={[styles.amenityChipText, selected && styles.amenityChipTextSelected]}>
-      {amenity.name}
-    </Text>
-    {selected && (
-      <Ionicons name="checkmark" size={16} color="#FFFFFF" style={{ marginLeft: 4 }} />
-    )}
-  </TouchableOpacity>
-);
+const AmenityChip: React.FC<AmenityChipProps> = ({ amenity, selected, onToggle }) => {
+  const { theme, isDark } = useTheme();
+  return (
+    <TouchableOpacity
+      style={[
+        styles.amenityChip,
+        selected && styles.amenityChipSelected,
+        { backgroundColor: selected ? Colors.primary : (isDark ? theme.colors.surfaceLight : theme.colors.surfaceLight), borderColor: selected ? Colors.primary : theme.colors.border },
+      ]}
+      onPress={onToggle}
+    >
+      <Text style={[styles.amenityChipText, { color: selected ? Colors.white : theme.colors.textSecondary }, selected && styles.amenityChipTextSelected]}>
+        {amenity.name}
+      </Text>
+      {selected && (
+        <Ionicons name="checkmark" size={16} color={Colors.white} style={{ marginLeft: 4 }} />
+      )}
+    </TouchableOpacity>
+  );
+};
 
 
 /**
@@ -196,6 +214,7 @@ export function EditListingScreen(): React.JSX.Element {
   const navigation = useNavigation();
   const route = useRoute<RouteProp<EditListingRouteParams, 'EditListing'>>();
   const { propertyId } = route.params;
+  const { theme, isDark } = useTheme();
 
   // State
   const [form, setForm] = useState<FormState | null>(null);
@@ -205,6 +224,11 @@ export function EditListingScreen(): React.JSX.Element {
   const [amenities, setAmenities] = useState<Amenity[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [modalErrorMessage, setModalErrorMessage] = useState('');
+  const [showAddImageModal, setShowAddImageModal] = useState(false);
+  const [newImageUrl, setNewImageUrl] = useState('');
 
   /**
    * Fetch property data and form options
@@ -239,6 +263,7 @@ export function EditListingScreen(): React.JSX.Element {
           address: property.address || '',
           city: property.city || '',
           state: property.state || '',
+          zipCode: property.zipCode || '',
           price: property.price?.toString() || '',
           bedrooms: property.bedrooms?.toString() || '',
           bathrooms: property.bathrooms?.toString() || '',
@@ -291,26 +316,25 @@ export function EditListingScreen(): React.JSX.Element {
    * Add image URL
    */
   const addImageUrl = useCallback(() => {
-    Alert.prompt(
-      'Add Image URL',
-      'Enter the URL of the property image',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Add',
-          onPress: (url?: string) => {
-            if (url && url.trim() && form) {
-              setForm(prev => prev ? {
-                ...prev,
-                images: [...prev.images, url.trim()].slice(0, 10),
-              } : null);
-            }
-          },
-        },
-      ],
-      'plain-text'
-    );
-  }, [form]);
+    setShowAddImageModal(true);
+  }, []);
+
+  const handleConfirmAddImage = useCallback(() => {
+    const url = newImageUrl.trim();
+    if (url) {
+      setForm(prev => prev ? ({
+        ...prev,
+        images: [...prev.images, url].slice(0, 10),
+      }) : null);
+    }
+    setNewImageUrl('');
+    setShowAddImageModal(false);
+  }, [newImageUrl]);
+
+  const handleCancelAddImage = useCallback(() => {
+    setNewImageUrl('');
+    setShowAddImageModal(false);
+  }, []);
 
   /**
    * Remove image
@@ -327,7 +351,12 @@ export function EditListingScreen(): React.JSX.Element {
    * Requirements: 6.2
    */
   const handleSubmit = useCallback(async () => {
-    if (!form) return;
+    if (!form) {
+      console.log('Form is null, cannot submit');
+      return;
+    }
+
+    console.log('Current form state:', JSON.stringify(form, null, 2));
 
     // Build request data
     const requestData: CreatePropertyRequest = {
@@ -337,34 +366,51 @@ export function EditListingScreen(): React.JSX.Element {
       address: form.address.trim(),
       city: form.city.trim(),
       state: form.state.trim(),
+      zipCode: form.zipCode?.trim() || '',
       price: parseFloat(form.price) || 0,
       bedrooms: parseInt(form.bedrooms, 10) || 0,
       bathrooms: parseInt(form.bathrooms, 10) || 0,
       areaSqm: parseFloat(form.areaSqm) || 0,
-      furnished: form.furnished,
+      furnished: form.furnished === 'Fully Furnished' || form.furnished === 'Partially Furnished',
       images: form.images,
       amenityIds: form.amenityIds,
     };
 
     // Validate
+    console.log('Form data before validation:', JSON.stringify(form, null, 2));
+    console.log('Request data for validation:', JSON.stringify(requestData, null, 2));
     const validation: ValidationResult = validateListingData(requestData);
+    console.log('Validation result:', JSON.stringify(validation, null, 2));
     if (!validation.isValid) {
       setErrors(validation.errors);
-      Alert.alert('Validation Error', 'Please fill in all required fields correctly.');
+      console.log('Validation errors:', validation.errors);
+      if (Platform.OS === 'web') {
+        window.alert('Please fill in all required fields correctly.');
+      } else {
+        Alert.alert('Validation Error', 'Please fill in all required fields correctly.');
+      }
       return;
     }
 
     setIsSubmitting(true);
     try {
+      console.log('Updating property data:', JSON.stringify(requestData, null, 2));
       await updateProperty(propertyId, requestData);
-      Alert.alert(
-        'Success',
-        'Your listing has been updated successfully!',
-        [{ text: 'OK', onPress: () => navigation.goBack() }]
-      );
+      setShowSuccessModal(true);
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to update listing. Please try again.';
-      Alert.alert('Error', errorMessage);
+      console.error('Update property error:', err);
+      const error = err as { status?: number; message?: string; data?: unknown };
+      console.error('Error details:', JSON.stringify(error, null, 2));
+      let errorMessage = 'Failed to update listing. Please try again.';
+      
+      if (error.status === 404) {
+        errorMessage = 'Update listing feature is not available yet. Backend endpoint not implemented.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setModalErrorMessage(errorMessage);
+      setShowErrorModal(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -380,7 +426,7 @@ export function EditListingScreen(): React.JSX.Element {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView
@@ -389,35 +435,43 @@ export function EditListingScreen(): React.JSX.Element {
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, { backgroundColor: theme.colors.surface }] }>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color="#1F2937" />
+            <Ionicons name="arrow-back" size={24} color={theme.colors.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Edit Listing</Text>
+          <Text style={[styles.headerTitle, { color: theme.colors.text }]}>Edit Listing</Text>
           <View style={{ width: 40 }} />
         </View>
 
         {/* Basic Information Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Basic Information</Text>
+        <View style={[styles.section, { backgroundColor: isDark ? theme.colors.surfaceLight : theme.colors.surface }]}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Basic Information</Text>
 
           <FormField label="Title" required error={errors.title}>
             <TextInput
-              style={[styles.input, errors.title && styles.inputError]}
+              style={[
+                styles.input,
+                { backgroundColor: isDark ? theme.colors.surfaceLight : theme.colors.surfaceLight, borderColor: theme.colors.border, color: theme.colors.text },
+                errors.title && { borderColor: Colors.error },
+              ]}
               value={form.title}
               onChangeText={(v: string) => updateField('title', v)}
               placeholder="e.g., Modern 2BR Apartment in KL"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={theme.colors.placeholder}
             />
           </FormField>
 
           <FormField label="Description">
             <TextInput
-              style={[styles.input, styles.textArea]}
+              style={[
+                styles.input,
+                styles.textArea,
+                { backgroundColor: isDark ? theme.colors.surfaceLight : theme.colors.surfaceLight, borderColor: theme.colors.border, color: theme.colors.text },
+              ]}
               value={form.description}
               onChangeText={(v: string) => updateField('description', v)}
               placeholder="Describe your property..."
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={theme.colors.placeholder}
               multiline
               numberOfLines={4}
               textAlignVertical="top"
@@ -439,16 +493,20 @@ export function EditListingScreen(): React.JSX.Element {
         </View>
 
         {/* Location Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Location</Text>
+        <View style={[styles.section, { backgroundColor: isDark ? theme.colors.surfaceLight : theme.colors.surface }]}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Location</Text>
 
           <FormField label="Address" required error={errors.address}>
             <TextInput
-              style={[styles.input, errors.address && styles.inputError]}
+              style={[
+                styles.input,
+                { backgroundColor: isDark ? theme.colors.surfaceLight : theme.colors.surfaceLight, borderColor: theme.colors.border, color: theme.colors.text },
+                errors.address && { borderColor: Colors.error },
+              ]}
               value={form.address}
               onChangeText={(v: string) => updateField('address', v)}
               placeholder="Street address"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={theme.colors.placeholder}
             />
           </FormField>
 
@@ -456,39 +514,66 @@ export function EditListingScreen(): React.JSX.Element {
             <View style={styles.halfField}>
               <FormField label="City" required error={errors.city}>
                 <TextInput
-                  style={[styles.input, errors.city && styles.inputError]}
+                  style={[
+                    styles.input,
+                    { backgroundColor: isDark ? theme.colors.surfaceLight : theme.colors.surfaceLight, borderColor: theme.colors.border, color: theme.colors.text },
+                    errors.city && { borderColor: Colors.error },
+                  ]}
                   value={form.city}
                   onChangeText={(v: string) => updateField('city', v)}
                   placeholder="City"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={theme.colors.placeholder}
                 />
               </FormField>
             </View>
             <View style={styles.halfField}>
               <FormField label="State" required error={errors.state}>
                 <TextInput
-                  style={[styles.input, errors.state && styles.inputError]}
+                  style={[
+                    styles.input,
+                    { backgroundColor: isDark ? theme.colors.surfaceLight : theme.colors.surfaceLight, borderColor: theme.colors.border, color: theme.colors.text },
+                    errors.state && { borderColor: Colors.error },
+                  ]}
                   value={form.state}
                   onChangeText={(v: string) => updateField('state', v)}
                   placeholder="State"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={theme.colors.placeholder}
                 />
               </FormField>
             </View>
           </View>
+
+          <FormField label="Zip Code" required error={errors.zipCode}>
+            <TextInput
+              style={[
+                styles.input,
+                { backgroundColor: isDark ? theme.colors.surfaceLight : theme.colors.surfaceLight, borderColor: theme.colors.border, color: theme.colors.text },
+                errors.zipCode && { borderColor: Colors.error },
+              ]}
+              value={form.zipCode}
+              onChangeText={(v: string) => updateField('zipCode', v)}
+              placeholder="e.g., 50000"
+              placeholderTextColor={theme.colors.placeholder}
+              keyboardType="numeric"
+            />
+          </FormField>
         </View>
 
         {/* Property Details Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Property Details</Text>
+        <View style={[styles.section, { backgroundColor: isDark ? theme.colors.surfaceLight : theme.colors.surface }]}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Property Details</Text>
 
           <FormField label="Daily Rent (RM)" required error={errors.price}>
             <TextInput
-              style={[styles.input, errors.price && styles.inputError]}
+              style={[
+                styles.input,
+                { backgroundColor: isDark ? theme.colors.surfaceLight : theme.colors.surfaceLight, borderColor: theme.colors.border, color: theme.colors.text },
+                errors.price && { borderColor: Colors.error },
+              ]}
               value={form.price}
               onChangeText={(v: string) => updateField('price', v)}
               placeholder="0"
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={theme.colors.placeholder}
               keyboardType="numeric"
             />
           </FormField>
@@ -497,11 +582,15 @@ export function EditListingScreen(): React.JSX.Element {
             <View style={styles.thirdField}>
               <FormField label="Bedrooms" required error={errors.bedrooms}>
                 <TextInput
-                  style={[styles.input, errors.bedrooms && styles.inputError]}
+                  style={[
+                    styles.input,
+                    { backgroundColor: isDark ? theme.colors.surfaceLight : theme.colors.surfaceLight, borderColor: theme.colors.border, color: theme.colors.text },
+                    errors.bedrooms && { borderColor: Colors.error },
+                  ]}
                   value={form.bedrooms}
                   onChangeText={(v: string) => updateField('bedrooms', v)}
                   placeholder="0"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={theme.colors.placeholder}
                   keyboardType="numeric"
                 />
               </FormField>
@@ -509,11 +598,15 @@ export function EditListingScreen(): React.JSX.Element {
             <View style={styles.thirdField}>
               <FormField label="Bathrooms" required error={errors.bathrooms}>
                 <TextInput
-                  style={[styles.input, errors.bathrooms && styles.inputError]}
+                  style={[
+                    styles.input,
+                    { backgroundColor: isDark ? theme.colors.surfaceLight : theme.colors.surfaceLight, borderColor: theme.colors.border, color: theme.colors.text },
+                    errors.bathrooms && { borderColor: Colors.error },
+                  ]}
                   value={form.bathrooms}
                   onChangeText={(v: string) => updateField('bathrooms', v)}
                   placeholder="0"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={theme.colors.placeholder}
                   keyboardType="numeric"
                 />
               </FormField>
@@ -521,11 +614,15 @@ export function EditListingScreen(): React.JSX.Element {
             <View style={styles.thirdField}>
               <FormField label="Area (sqm)" required error={errors.areaSqm}>
                 <TextInput
-                  style={[styles.input, errors.areaSqm && styles.inputError]}
+                  style={[
+                    styles.input,
+                    { backgroundColor: isDark ? theme.colors.surfaceLight : theme.colors.surfaceLight, borderColor: theme.colors.border, color: theme.colors.text },
+                    errors.areaSqm && { borderColor: Colors.error },
+                  ]}
                   value={form.areaSqm}
                   onChangeText={(v: string) => updateField('areaSqm', v)}
                   placeholder="0"
-                  placeholderTextColor="#9CA3AF"
+                  placeholderTextColor={theme.colors.placeholder}
                   keyboardType="numeric"
                 />
               </FormField>
@@ -544,35 +641,35 @@ export function EditListingScreen(): React.JSX.Element {
 
 
         {/* Images Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Photos</Text>
-          <Text style={styles.sectionSubtitle}>Add up to 10 photos of your property</Text>
+        <View style={[styles.section, { backgroundColor: isDark ? theme.colors.surfaceLight : theme.colors.surface }]}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Photos</Text>
+          <Text style={[styles.sectionSubtitle, { color: theme.colors.textSecondary }]}>Add up to 10 photos of your property</Text>
 
           <View style={styles.imagesContainer}>
             {form.images.map((uri, index) => (
               <View key={index} style={styles.imageWrapper}>
                 <Image source={{ uri }} style={styles.imagePreview} />
                 <TouchableOpacity
-                  style={styles.removeImageButton}
+                  style={[styles.removeImageButton, { backgroundColor: theme.colors.surface }]}
                   onPress={() => removeImage(index)}
                 >
-                  <Ionicons name="close-circle" size={24} color="#EF4444" />
+                  <Ionicons name="close-circle" size={24} color={Colors.error} />
                 </TouchableOpacity>
               </View>
             ))}
             {form.images.length < 10 && (
-              <TouchableOpacity style={styles.addImageButton} onPress={addImageUrl}>
-                <Ionicons name="camera-outline" size={32} color="#6B7280" />
-                <Text style={styles.addImageText}>Add Photo</Text>
+              <TouchableOpacity style={[styles.addImageButton, { backgroundColor: isDark ? theme.colors.surfaceLight : theme.colors.surfaceLight, borderColor: theme.colors.border }]} onPress={addImageUrl}>
+                <Ionicons name="camera-outline" size={32} color={theme.colors.textSecondary} />
+                <Text style={[styles.addImageText, { color: theme.colors.textSecondary }]}>Add Photo</Text>
               </TouchableOpacity>
             )}
           </View>
         </View>
 
         {/* Amenities Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Amenities</Text>
-          <Text style={styles.sectionSubtitle}>Select available amenities</Text>
+        <View style={[styles.section, { backgroundColor: isDark ? theme.colors.surfaceLight : theme.colors.surface }]}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Amenities</Text>
+          <Text style={[styles.sectionSubtitle, { color: theme.colors.textSecondary }]}>Select available amenities</Text>
 
           <View style={styles.amenitiesContainer}>
             {amenities.map(amenity => (
@@ -588,20 +685,110 @@ export function EditListingScreen(): React.JSX.Element {
 
         {/* Submit Button */}
         <TouchableOpacity
-          style={[styles.submitButton, isSubmitting && styles.submitButtonDisabled]}
+          style={[styles.submitButton, isSubmitting && { backgroundColor: theme.colors.textSecondary }]}
           onPress={handleSubmit}
           disabled={isSubmitting}
         >
           {isSubmitting ? (
-            <LoadingSpinner size="small" color="#FFFFFF" />
+            <LoadingSpinner size="small" color={Colors.white} />
           ) : (
             <>
-              <Ionicons name="checkmark-circle-outline" size={20} color="#FFFFFF" />
-              <Text style={styles.submitButtonText}>Update Listing</Text>
+              <Ionicons name="checkmark-circle-outline" size={20} color={Colors.white} />
+              <Text style={[styles.submitButtonText, { color: Colors.white }]}>Update Listing</Text>
             </>
           )}
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Success Modal */}
+      <Modal
+        visible={showSuccessModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowSuccessModal(false)}
+      >
+        <View style={[styles.alertModalOverlay, { backgroundColor: theme.colors.overlay }]}>
+          <View style={[styles.alertModalContent, { backgroundColor: theme.colors.surface }]}>
+            <Ionicons name="checkmark-circle" size={48} color={Colors.secondary} />
+            <Text style={[styles.alertModalTitle, { color: theme.colors.text }]}>Success</Text>
+            <Text style={[styles.alertModalMessage, { color: theme.colors.textSecondary }]}>
+              Your listing has been updated successfully!
+            </Text>
+            <TouchableOpacity
+              style={[styles.alertModalButton, { backgroundColor: Colors.primary }]}
+              onPress={() => {
+                setShowSuccessModal(false);
+                navigation.goBack();
+              }}
+            >
+              <Text style={[styles.alertModalButtonText, { color: Colors.white }]}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Error Modal */}
+      <Modal
+        visible={showErrorModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowErrorModal(false)}
+      >
+        <View style={[styles.alertModalOverlay, { backgroundColor: theme.colors.overlay }]}>
+          <View style={[styles.alertModalContent, { backgroundColor: theme.colors.surface }]}>
+            <Ionicons name="close-circle" size={48} color={Colors.error} />
+            <Text style={[styles.alertModalTitle, { color: theme.colors.text }]}>Error</Text>
+            <Text style={[styles.alertModalMessage, { color: theme.colors.textSecondary }]}>{modalErrorMessage}</Text>
+            <TouchableOpacity
+              style={[styles.alertModalButton, { backgroundColor: Colors.error }]}
+              onPress={() => setShowErrorModal(false)}
+            >
+              <Text style={[styles.alertModalButtonText, { color: Colors.white }]}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Add Image Modal */}
+      <Modal
+        visible={showAddImageModal}
+        transparent
+        animationType="fade"
+        onRequestClose={handleCancelAddImage}
+      >
+        <View style={[styles.alertModalOverlay, { backgroundColor: theme.colors.overlay }]}>
+          <View style={[styles.alertModalContent, { backgroundColor: theme.colors.surface }]}>
+            <Ionicons name="link" size={32} color={Colors.primary} />
+            <Text style={[styles.alertModalTitle, { color: theme.colors.text }]}>Add Image URL</Text>
+            <TextInput
+              style={[
+                styles.input,
+                { backgroundColor: isDark ? theme.colors.surfaceLight : theme.colors.surfaceLight, borderColor: theme.colors.border, color: theme.colors.text, width: '100%', marginTop: 12 },
+              ]}
+              placeholder="https://example.com/photo.jpg"
+              placeholderTextColor={theme.colors.placeholder}
+              value={newImageUrl}
+              onChangeText={setNewImageUrl}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            <View style={{ flexDirection: 'row', width: '100%', marginTop: 16 }}>
+              <TouchableOpacity
+                style={[styles.alertModalButton, { backgroundColor: Colors.primary, flex: 1, marginRight: 8 }]}
+                onPress={handleConfirmAddImage}
+              >
+                <Text style={[styles.alertModalButtonText, { color: Colors.white }]}>Add</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.alertModalButton, { backgroundColor: Colors.dark.surfaceLight, flex: 1, marginLeft: 8 }]}
+                onPress={handleCancelAddImage}
+              >
+                <Text style={[styles.alertModalButtonText, { color: theme.colors.text }]}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -609,7 +796,7 @@ export function EditListingScreen(): React.JSX.Element {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: Colors.dark.background,
   },
   scrollView: {
     flex: 1,
@@ -624,7 +811,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Colors.dark.surface,
   },
   backButton: {
     padding: 8,
@@ -632,7 +819,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#1F2937',
+    color: Colors.dark.text,
   },
   section: {
     backgroundColor: '#FFFFFF',
@@ -809,8 +996,8 @@ const styles = StyleSheet.create({
     borderColor: '#E5E7EB',
   },
   amenityChipSelected: {
-    backgroundColor: '#6200ee',
-    borderColor: '#6200ee',
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
   amenityChipText: {
     fontSize: 13,
@@ -823,20 +1010,63 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#6200ee',
+    backgroundColor: Colors.primary,
     marginHorizontal: 16,
     marginTop: 24,
     paddingVertical: 16,
-    borderRadius: 12,
+    borderRadius: 16,
   },
   submitButtonDisabled: {
-    backgroundColor: '#A78BFA',
+    backgroundColor: Colors.dark.textSecondary,
   },
   submitButtonText: {
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
     marginLeft: 8,
+  },
+  // Alert Modal Styles
+  alertModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  alertModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
+    alignItems: 'center',
+    width: '100%',
+    maxWidth: 320,
+  },
+  alertModalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  alertModalMessage: {
+    fontSize: 14,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  alertModalButton: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    borderRadius: 16,
+    minWidth: 120,
+    alignItems: 'center',
+  },
+  alertModalButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 14,
   },
 });
 

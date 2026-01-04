@@ -192,27 +192,53 @@ export function AIPriceEstimatorScreen(): React.JSX.Element {
           </Text>
         </View>
 
-        {/* Property Type */}
+        {/* Property Type - Grid 2x2 */}
         <View style={styles.inputGroup}>
           <Text style={styles.inputLabel}>Property Type</Text>
-          <View style={styles.typeSelector}>
-            {PROPERTY_TYPES.map((type) => (
-              <TouchableOpacity
-                key={type}
-                style={[
-                  styles.typeButton,
-                  formData.type === type && styles.typeButtonActive,
-                ]}
-                onPress={() => setFormData({ ...formData, type })}
-              >
-                <Text style={[
-                  styles.typeButtonText,
-                  formData.type === type && styles.typeButtonTextActive,
-                ]}>
-                  {type}
-                </Text>
-              </TouchableOpacity>
-            ))}
+          <View style={styles.typeGrid}>
+            {PROPERTY_TYPES.map((type) => {
+              const typeConfig: Record<string, { icon: string; color: string }> = {
+                'Apartment': { icon: 'business', color: '#60A5FA' },
+                'Condominium': { icon: 'home', color: '#34D399' },
+                'Service Residence': { icon: 'bed', color: '#F472B6' },
+                'Townhouse': { icon: 'home-outline', color: '#FBBF24' },
+              };
+              const config = typeConfig[type];
+              const isSelected = formData.type === type;
+              return (
+                <TouchableOpacity
+                  key={type}
+                  style={[
+                    styles.typeCard,
+                    isSelected && styles.typeCardActive,
+                    isSelected && { borderColor: config.color },
+                  ]}
+                  onPress={() => setFormData({ ...formData, type })}
+                >
+                  <View style={[
+                    styles.typeIconWrapper,
+                    { backgroundColor: isSelected ? `${config.color}20` : Colors.dark.surface },
+                  ]}>
+                    <Ionicons 
+                      name={config.icon as any} 
+                      size={28} 
+                      color={isSelected ? config.color : Colors.dark.textTertiary} 
+                    />
+                  </View>
+                  <Text style={[
+                    styles.typeCardText,
+                    isSelected && styles.typeCardTextActive,
+                  ]}>
+                    {type}
+                  </Text>
+                  {isSelected && (
+                    <View style={[styles.typeCheckmark, { backgroundColor: config.color }]}>
+                      <Ionicons name="checkmark" size={12} color={Colors.white} />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
 
@@ -343,29 +369,51 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.sm,
   },
 
-  // Type Selector
-  typeSelector: {
+  // Type Grid 2x2
+  typeGrid: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+  },
+  typeCard: {
+    width: '48.5%',
     backgroundColor: Colors.dark.surface,
     borderRadius: BorderRadius.md,
-    padding: 4,
-  },
-  typeButton: {
-    flex: 1,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.sm,
+    padding: Spacing.md,
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: Colors.dark.border,
+    position: 'relative',
   },
-  typeButtonActive: {
-    backgroundColor: Colors.dark.background,
+  typeCardActive: {
+    backgroundColor: Colors.dark.surfaceLight,
   },
-  typeButtonText: {
+  typeIconWrapper: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  typeCardText: {
     fontSize: FontSize.sm,
-    fontWeight: '500',
+    fontWeight: '600',
     color: Colors.dark.textTertiary,
+    textAlign: 'center',
   },
-  typeButtonTextActive: {
+  typeCardTextActive: {
     color: Colors.white,
+  },
+  typeCheckmark: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   // Text Input

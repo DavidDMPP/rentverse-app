@@ -326,7 +326,16 @@ export function BookingManagementScreen(): React.JSX.Element {
       }
       setError(null);
 
+      console.log('Fetching owner bookings...');
       const response = await getOwnerBookings();
+      console.log('Owner bookings response:', response.data?.length || 0, 'bookings');
+      console.log('Bookings data:', response.data?.map(b => ({
+        id: b.id,
+        status: b.status,
+        startDate: b.startDate,
+        endDate: b.endDate,
+        property: b.property?.title
+      })));
       setBookings(response.data || []);
     } catch (err: any) {
       const errorMessage = err?.message || 'Failed to load bookings. Please try again.';
@@ -351,6 +360,16 @@ export function BookingManagementScreen(): React.JSX.Element {
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
       });
       setFilteredBookings(sorted);
+    } else if (selectedStatus === 'ACTIVE') {
+      // For ACTIVE filter, show all APPROVED/ACTIVE bookings (not just currently running)
+      console.log('Filtering for ACTIVE bookings');
+      const activeBookings = bookings.filter((b) => {
+        const isApprovedOrActive = b.status === 'APPROVED' || b.status === 'ACTIVE';
+        console.log(`Booking ${b.id}: status: ${b.status}, approved/active: ${isApprovedOrActive}`);
+        return isApprovedOrActive;
+      });
+      console.log('Active bookings found:', activeBookings.length);
+      setFilteredBookings(activeBookings);
     } else {
       setFilteredBookings(bookings.filter((b) => b.status === selectedStatus));
     }
@@ -400,6 +419,11 @@ export function BookingManagementScreen(): React.JSX.Element {
         )
       );
 
+      // Refresh data to get updated info
+      setTimeout(() => {
+        fetchBookings();
+      }, 1000);
+
       setBookingToApprove(null);
       setResultModalType('success');
       setResultModalMessage('Booking has been approved successfully.');
@@ -445,6 +469,11 @@ export function BookingManagementScreen(): React.JSX.Element {
             : b
         )
       );
+
+      // Refresh data to get updated info
+      setTimeout(() => {
+        fetchBookings();
+      }, 1000);
 
       setBookingToReject(null);
       setResultModalType('success');
@@ -728,9 +757,27 @@ export function BookingManagementScreen(): React.JSX.Element {
                       <Text style={styles.detailValue}>{formatDate(selectedBooking.endDate)}</Text>
                     </View>
                     <View style={styles.detailRow}>
-                      <Ionicons name="cash" size={18} color={Colors.primary} />
-                      <Text style={styles.detailLabel}>Rent Amount</Text>
-                      <Text style={styles.detailValue}>{formatCurrency(selectedBooking.rentAmount)}</Text>
+                      <Ionicons name="time" size={18} color={Colors.accent} />
+                      <Text style={styles.detailLabel}>Duration</Text>
+                      <Text style={styles.detailValue}>
+                        {Math.ceil((new Date(selectedBooking.endDate).getTime() - new Date(selectedBooking.startDate).getTime()) / (1000 * 60 * 60 * 24))} days
+                      </Text>
+                    </View>
+                    <View style={styles.detailRow}>
+                      <Ionicons name="pricetag" size={18} color={Colors.dark.textTertiary} />
+                      <Text style={styles.detailLabel}>Price/Day</Text>
+                      <Text style={styles.detailValue}>{formatCurrency(selectedBooking.property?.price || 0)}</Text>
+                    </View>
+                    <View style={styles.detailRow}>
+                      <Ionicons name="cash" size={18} color={Colors.success} />
+                      <Text style={styles.detailLabel}>Total Amount</Text>
+                      <Text style={[styles.detailValue, { color: Colors.success, fontWeight: '700' }]}>
+                        {formatCurrency(
+                          selectedBooking.rentAmount > (selectedBooking.property?.price || 0)
+                            ? selectedBooking.rentAmount
+                            : (selectedBooking.property?.price || 0) * Math.ceil((new Date(selectedBooking.endDate).getTime() - new Date(selectedBooking.startDate).getTime()) / (1000 * 60 * 60 * 24))
+                        )}
+                      </Text>
                     </View>
                     <View style={styles.detailRow}>
                       <Ionicons name="information-circle" size={18} color={Colors.primary} />

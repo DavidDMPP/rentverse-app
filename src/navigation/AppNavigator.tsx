@@ -25,6 +25,7 @@ import RegisterScreen from '../screens/auth/RegisterScreen';
 // Import Shared Screens
 import { PropertyDetailScreen } from '../screens/tenant/PropertyDetailScreen';
 import { BookingScreen } from '../screens/tenant/BookingScreen';
+import { BookingDetailScreen } from '../screens/tenant/BookingDetailScreen';
 
 // Stack param lists
 export type AuthStackParamList = {
@@ -38,6 +39,7 @@ export type RootStackParamList = {
   ProviderTabs: undefined;
   PropertyDetail: { propertyId: string };
   Booking: { propertyId: string };
+  BookingDetail: { bookingId: string };
   BookingManagement: undefined;
 };
 
@@ -109,6 +111,13 @@ const RootNavigator: React.FC = () => {
       <RootStack.Screen 
         name="Booking" 
         component={BookingScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <RootStack.Screen 
+        name="BookingDetail" 
+        component={BookingDetailScreen}
         options={{
           headerShown: false,
         }}

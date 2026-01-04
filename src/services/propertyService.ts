@@ -407,6 +407,10 @@ export const validateListingData = (data: Partial<CreatePropertyRequest>): Valid
     errors.state = 'State is required';
   }
 
+  if (!data.zipCode || data.zipCode.trim() === '') {
+    errors.zipCode = 'Zip code is required';
+  }
+
   return {
     isValid: Object.keys(errors).length === 0,
     errors,
